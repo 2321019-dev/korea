@@ -1,63 +1,57 @@
-
 import streamlit as st
-from openai import OpenAI
-st.write(st.secrets)
-# 🔐 API KEY (OPENAI_API_KEY)
-client = OpenAI(api_key="OPENAI_API_KEY")
 
-# =========================
-# GPT 기반 교정 함수
-# =========================
-def correct_korean(text):
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": "너는 한국어 맞춤법과 띄어쓰기를 교정하는 전문가야. 의미를 유지하면서 자연스럽게 수정해줘."
-            },
-            {
-                "role": "user",
-                "content": text
-            }
-        ]
-    )
-    return response.choices[0].message.content
+st.title("🇰🇷 한국어 음절 구조 분석기")
+st.write("한글 단어를 입력하면 초성/중성/종성으로 분해합니다.")
+
+# -------------------------
+# 한글 분해 함수
+# -------------------------
+def decompose_hangul(text):
+    result = []
+
+    for char in text:
+        if '가' <= char <= '힣':
+            base = ord(char) - ord('가')
+
+            cho = base // 588
+            jung = (base % 588) // 28
+            jong = base % 28
+
+            cho_list = [
+                "ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ",
+                "ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"
+            ]
+
+            jung_list = [
+                "ㅏ","ㅐ","ㅑ","ㅒ","ㅓ","ㅔ","ㅕ","ㅖ",
+                "ㅗ","ㅘ","ㅙ","ㅚ","ㅛ",
+                "ㅜ","ㅝ","ㅞ","ㅟ","ㅠ",
+                "ㅡ","ㅢ","ㅣ"
+            ]
+
+            jong_list = [
+                "∅","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ",
+                "ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ",
+                "ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"
+            ]
+
+            result.append(f"{char} = {cho_list[cho]} + {jung_list[jung]} + {jong_list[jong]}")
+        else:
+            result.append(f"{char} = (한글 아님)")
+
+    return "\n".join(result)
 
 
-# =========================
-# Streamlit UI
-# =========================
-st.set_page_config(page_title="Korean AI Correction System")
+# -------------------------
+# UI
+# -------------------------
+text = st.text_input("단어를 입력하세요")
 
-st.title("🇰🇷 AI 한국어 맞춤법 교정기 (GPT 기반)")
-st.write("GPT를 활용한 문장 자동 교정 웹앱입니다.")
-
-# 입력창
-text = st.text_area("문장을 입력하세요")
-
-# 버튼
-col1, col2 = st.columns(2)
-
-with col1:
-    run = st.button("교정하기")
-
-with col2:
-    example = st.button("예시 입력")
-
-# 예시
-if example:
-    text = "나는밥을먹엇다그리고학교에갓다"
-
-# 실행
-if run:
+if st.button("분석하기"):
     if text.strip() == "":
-        st.warning("문장을 입력해주세요")
+        st.warning("문장을 입력해주세요!")
     else:
-        result = correct_korean(text)
+        output = decompose_hangul(text)
 
-        st.subheader("입력")
-        st.info(text)
-
-        st.subheader("교정 결과")
-        st.success(result)
+        st.subheader("🔍 분석 결과")
+        st.text(output)
