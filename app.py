@@ -3,7 +3,7 @@ import streamlit as st
 from openai import OpenAI
 
 # 🔐 API KEY (OPENAI_API_KEY)
-client = OpenAI(api_key="YOUR_API_KEY")
+client = OpenAI(api_key="OPENAI_API_KEY")
 
 # =========================
 # GPT 기반 교정 함수
